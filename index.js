@@ -61,8 +61,6 @@ app.post("/webhooks/orders/create", async (req, res) => {
         path: `/admin/api/2023-04/products/${item.product_id}.json`,
       })
       
-      console.log("ProductQuery", productQuery)
-      console.log("Response", response)
 
       // Set the metadata for the NFT to the product information
       const metadata = {
