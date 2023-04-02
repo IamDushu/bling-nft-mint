@@ -30,8 +30,8 @@ app.post("/webhooks/orders/create", async (req, res) => {
   if (hash === hmac) {
     // Create a new client for the specified shop.
     const client = new Shopify.Clients.Rest(
-      SHOPIFY_SITE_URL,
-      SHOPIFY_ACCESS_TOKEN
+      process.env.SHOPIFY_SITE_URL,
+      process.env.SHOPIFY_ACCESS_TOKEN
     )
 
     const shopifyOrderId = req.get("X-Shopify-Order-Id")
@@ -43,10 +43,10 @@ app.post("/webhooks/orders/create", async (req, res) => {
 
     const itemsPurchased = response.body.order.line_items
 
-    const sdk = ThirdwebSDK.fromPrivateKey(ADMIN_PRIVATE_KEY, "goerli")
+    const sdk = ThirdwebSDK.fromPrivateKey(process.env.ADMIN_PRIVATE_KEY, "goerli")
 
     const nftCollection = await sdk.getContract(
-      NFT_COLLECTION_ADDRESS,
+      process.env.NFT_COLLECTION_ADDRESS,
       "nft-collection"
     )
 
