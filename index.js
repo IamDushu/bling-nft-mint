@@ -45,7 +45,10 @@ app.post("/webhooks/orders/create", async (req, res) => {
 
     const sdk = ThirdwebSDK.fromPrivateKey(ADMIN_PRIVATE_KEY, "goerli")
 
-    const nftCollection = await sdk.getEdition(NFT_COLLECTION_ADDRESS)
+    const nftCollection = await sdk.getContract(
+      NFT_COLLECTION_ADDRESS,
+      "nft-collection"
+    )
 
     // For each item purchased, mint the wallet address an NFT
     for (const item of itemsPurchased) {
@@ -61,22 +64,21 @@ app.post("/webhooks/orders/create", async (req, res) => {
         description: productQuery.body.product.body_html,
         image: productQuery.body.product.image.src,
       }
-      
+
       const walletAddress = response.body.order.properties.find(
         (p) => p.name === "Wallet Address"
       ).value
 
       // Mint the NFT
-      const minted = await nftCollection.mintTo(walletAddress, {
-        metadata: metadata,
-        supply: item.quantity,
-      })
+      const minted = await nftCollection.mintTo(walletAddress, metadata)
 
       console.log("Successfully minted NFTs!", minted)
     }
+    res.sendStatus(200)
   } else {
     res.sendStatus(403)
   }
 })
 
 app.listen(3000, () => console.log("Example app listening on port 3000!"))
+
