@@ -9,6 +9,10 @@ const { Shopify, DataType } = require("@shopify/shopify-api")
 require("dotenv").config()
 const secretKey = process.env.SHOPIFY_SECRET_KEY
 
+app.get("/webhooks/orders/create", (req, res) => {
+  res.send("GET REQUEST Called")
+})
+
 // Listen for requests to the /webhooks/orders/create route
 app.post("/webhooks/orders/create", async (req, res) => {
   console.log("Order event received!")
