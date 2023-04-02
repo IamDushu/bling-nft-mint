@@ -62,6 +62,7 @@ app.post("/webhooks/orders/create", async (req, res) => {
       })
       
       console.log("ProductQuery", productQuery)
+      console.log("Response", response)
 
       // Set the metadata for the NFT to the product information
       const metadata = {
