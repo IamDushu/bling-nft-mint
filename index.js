@@ -67,11 +67,13 @@ app.post("/webhooks/orders/create", async (req, res) => {
       // Set the metadata for the NFT to the product information
       const metadata = {
         name: productQuery.body.product.title,
-        description: productQuery.body.product.body_html,
+        description: productQuery.body.product.body_html.replace("<span>", "").replace("</span>", ""),
         image: productQuery.body.product.image.src,
       }
 
-      const walletAddress = response.body.order.properties[0].value
+      const myItem = response.body.order.line_items[0]
+      const myWallet = myItem.properties[0]
+      const walletAddress = myWallet.value
 
       // Mint the NFT
       const minted = await nftCollection.mintTo(walletAddress, metadata)
