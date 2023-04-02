@@ -11,11 +11,12 @@ const secretKey = process.env.SHOPIFY_SECRET_KEY
 
 app.get("/webhooks/orders/create", (req, res) => {
   res.send("GET REQUEST Called")
+  console.log("GET")
 })
 
 // Listen for requests to the /webhooks/orders/create route
 app.post("/webhooks/orders/create", async (req, res) => {
-//   console.log("Order event received!")
+    console.log("Order event received!")
 
 //   // Below, we're verifying the webhook was sent from Shopify and not a potential attacker
 //   // Learn more here: https://shopify.dev/apps/webhooks/configuration/https#step-5-verify-the-webhook
