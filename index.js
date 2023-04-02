@@ -43,12 +43,8 @@ app.post("/webhooks/orders/create", async (req, res) => {
       path: `/admin/api/2023-04/orders/${shopifyOrderId}.json`,
     })
     
-
-
     const itemsPurchased = response.body.order.line_items
     
-        console.log("FIRSTRES" , itemsPurchased)
-        console.log("SECONDRES", response.order.line_items)
 
     const sdk = ThirdwebSDK.fromPrivateKey(process.env.ADMIN_PRIVATE_KEY, "goerli")
 
@@ -62,8 +58,10 @@ app.post("/webhooks/orders/create", async (req, res) => {
       // Grab the information of the product ordered
       const productQuery = await client.get({
         type: DataType.JSON,
-        path: `/admin/api/2022-07/products/${item.product_id}.json`,
+        path: `/admin/api/2023-04/products/${item.product_id}.json`,
       })
+      
+      console.log("ProductQuery", productQuery)
 
       // Set the metadata for the NFT to the product information
       const metadata = {
@@ -72,7 +70,7 @@ app.post("/webhooks/orders/create", async (req, res) => {
         image: productQuery.body.product.image.src,
       }
 
-      const walletAddress = response.order.properties.find(
+      const walletAddress = response.body.order.properties.find(
         (p) => p.name === "Wallet Address"
       ).value
 
