@@ -43,9 +43,12 @@ app.post("/webhooks/orders/create", async (req, res) => {
       path: `/admin/api/2023-04/orders/${shopifyOrderId}.json`,
     })
     
-    console.log(response)
+
 
     const itemsPurchased = response.body.order.line_items
+    
+        console.log("FIRSTRES" , itemsPurchased)
+        console.log("SECONDRES", response.order.line_items)
 
     const sdk = ThirdwebSDK.fromPrivateKey(process.env.ADMIN_PRIVATE_KEY, "goerli")
 
@@ -69,7 +72,7 @@ app.post("/webhooks/orders/create", async (req, res) => {
         image: productQuery.body.product.image.src,
       }
 
-      const walletAddress = response.body.order.properties.find(
+      const walletAddress = response.order.properties.find(
         (p) => p.name === "Wallet Address"
       ).value
 
