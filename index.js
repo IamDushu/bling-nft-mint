@@ -17,70 +17,67 @@ app.get("/webhooks/orders/create", (req, res) => {
 // Listen for requests to the /webhooks/orders/create route
 app.post("/webhooks/orders/create", async (req, res) => {
     console.log("Order event received!")
-    console.log(req)
+  // Below, we're verifying the webhook was sent from Shopify and not a potential attacker
+  // Learn more here: https://shopify.dev/apps/webhooks/configuration/https#step-5-verify-the-webhook
+  const hmac = req.get("x-shopify-hmac-sha256")
+  const body = await getRawBody(req)
+  const hash = crypto
+    .createHmac("sha256", secretKey)
+    .update(body, "utf8", "hex")
+    .digest("base64")
 
-//   // Below, we're verifying the webhook was sent from Shopify and not a potential attacker
-//   // Learn more here: https://shopify.dev/apps/webhooks/configuration/https#step-5-verify-the-webhook
-//   const hmac = req.get("X-Shopify-Hmac-Sha256")
-//   const body = await getRawBody(req)
-//   const hash = crypto
-//     .createHmac("sha256", secretKey)
-//     .update(body, "utf8", "hex")
-//     .digest("base64")
+  // Compare our hash to Shopify's hash
+  if (hash === hmac) {
+    // Create a new client for the specified shop.
+    const client = new Shopify.Clients.Rest(
+      SHOPIFY_SITE_URL,
+      SHOPIFY_ACCESS_TOKEN
+    )
 
-//   // Compare our hash to Shopify's hash
-//   if (hash === hmac) {
-//     // Create a new client for the specified shop.
-//     const client = new Shopify.Clients.Rest(
-//       SHOPIFY_SITE_URL,
-//       SHOPIFY_ACCESS_TOKEN
-//     )
+    const shopifyOrderId = req.get("X-Shopify-Order-Id")
 
-//     const shopifyOrderId = req.get("X-Shopify-Order-Id")
+    const response = await client.get({
+      type: DataType.JSON,
+      path: `/admin/api/2023-04/orders/${shopifyOrderId}.json`,
+    })
 
-//     const response = await client.get({
-//       type: DataType.JSON,
-//       path: `/admin/api/2023-04/orders/${shopifyOrderId}.json`,
-//     })
+    const itemsPurchased = response.body.order.line_items
 
-//     const itemsPurchased = response.body.order.line_items
+    const sdk = ThirdwebSDK.fromPrivateKey(ADMIN_PRIVATE_KEY, "goerli")
 
-//     const sdk = ThirdwebSDK.fromPrivateKey(ADMIN_PRIVATE_KEY, "goerli")
+    const nftCollection = await sdk.getContract(
+      NFT_COLLECTION_ADDRESS,
+      "nft-collection"
+    )
 
-//     const nftCollection = await sdk.getContract(
-//       NFT_COLLECTION_ADDRESS,
-//       "nft-collection"
-//     )
+    // For each item purchased, mint the wallet address an NFT
+    for (const item of itemsPurchased) {
+      // Grab the information of the product ordered
+      const productQuery = await client.get({
+        type: DataType.JSON,
+        path: `/admin/api/2022-07/products/${item.product_id}.json`,
+      })
 
-//     // For each item purchased, mint the wallet address an NFT
-//     for (const item of itemsPurchased) {
-//       // Grab the information of the product ordered
-//       const productQuery = await client.get({
-//         type: DataType.JSON,
-//         path: `/admin/api/2022-07/products/${item.product_id}.json`,
-//       })
+      // Set the metadata for the NFT to the product information
+      const metadata = {
+        name: productQuery.body.product.title,
+        description: productQuery.body.product.body_html,
+        image: productQuery.body.product.image.src,
+      }
 
-//       // Set the metadata for the NFT to the product information
-//       const metadata = {
-//         name: productQuery.body.product.title,
-//         description: productQuery.body.product.body_html,
-//         image: productQuery.body.product.image.src,
-//       }
+      const walletAddress = response.body.order.properties.find(
+        (p) => p.name === "Wallet Address"
+      ).value
 
-//       const walletAddress = response.body.order.properties.find(
-//         (p) => p.name === "Wallet Address"
-//       ).value
+      // Mint the NFT
+      const minted = await nftCollection.mintTo(walletAddress, metadata)
 
-//       // Mint the NFT
-//       const minted = await nftCollection.mintTo(walletAddress, metadata)
-
-//       console.log("Successfully minted NFTs!", minted)
-//     }
-//     res.sendStatus(200)
-//   } else {
-//     res.sendStatus(403)
-//   }
-  res.sendStatus(200)
+      console.log("Successfully minted NFTs!", minted)
+    }
+    res.sendStatus(200)
+  } else {
+    res.sendStatus(403)
+  }
 })
 
 app.listen(3000, () => console.log("Example app listening on port 3000!"))
