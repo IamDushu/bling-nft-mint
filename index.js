@@ -28,18 +28,22 @@ app.post("/webhooks/orders/create", async (req, res) => {
 
   // Compare our hash to Shopify's hash
   if (hash === hmac) {
+        console.log("Inside If Loop")
+    
     // Create a new client for the specified shop.
     const client = new Shopify.Clients.Rest(
       process.env.SHOPIFY_SITE_URL,
       process.env.SHOPIFY_ACCESS_TOKEN
     )
 
-    const shopifyOrderId = req.get("X-Shopify-Order-Id")
+    const shopifyOrderId = req.get("x-shopify-order-id")
 
     const response = await client.get({
       type: DataType.JSON,
       path: `/admin/api/2023-04/orders/${shopifyOrderId}.json`,
     })
+    
+    console.log(response)
 
     const itemsPurchased = response.body.order.line_items
 
