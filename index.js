@@ -70,9 +70,7 @@ app.post("/webhooks/orders/create", async (req, res) => {
         image: productQuery.body.product.image.src,
       }
 
-      const walletAddress = response.body.order.properties.find(
-        (p) => p.name === "Wallet Address"
-      ).value
+      const walletAddress = response.body.order.properties[0].value
 
       // Mint the NFT
       const minted = await nftCollection.mintTo(walletAddress, metadata)
