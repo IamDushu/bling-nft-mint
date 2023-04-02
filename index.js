@@ -38,7 +38,7 @@ app.post("/webhooks/orders/create", async (req, res) => {
 
     const response = await client.get({
       type: DataType.JSON,
-      path: `/admin/api/2022-07/orders/${shopifyOrderId}.json`,
+      path: `/admin/api/2023-04/orders/${shopifyOrderId}.json`,
     })
 
     const itemsPurchased = response.body.order.line_items
